@@ -40,6 +40,18 @@ def is_full_house(hand):
         return True, [three] * 3 + [pair] * 2
     return False, []
 
+def is_flush(hand):
+    suits = [card.suit for card in hand]
+    for suit in SUITS:
+        if suits.count(suit) == 5:
+            # Return cards in descending rank order
+            flush_ranks = sorted(
+                [card.rank for card in hand if card.suit == suit],
+                key=lambda r: RANK_VALUES[r],
+                reverse=True
+            )
+            return True, flush_ranks
+    return False, []
 
 def is_straight(hand):
     values = sorted(set(card.value for card in hand))
@@ -90,33 +102,12 @@ def is_four_of_a_kind(hand):
         kicker = [r for r in groups.get(1, [])][0]
         return True, [quad] * 4 + [kicker]
     return False, []
-
-
-def is_straight_from_cards(cards):
-    values = sorted(set(card.value for card in cards))
-    value_to_rank = {card.value: card.rank for card in cards}
-
-    # Check for A-2-3-4-5
-    if all(v in values for v in [14, 2, 3, 4, 5]):
-        return True, ['A', '2', '3', '4', '5']
-
-    for i in range(len(values) - 4):
-        window = values[i:i + 5]
-        if window[-1] - window[0] == 4 and len(set(window)) == 5:
-            straight_ranks = [value_to_rank[v] for v in window]
-            return True, sorted(straight_ranks, key=lambda r: RANK_VALUES[r])
-
-    return False, []
-
 def is_straight_flush(hand):
-    suits = get_suit_groups(hand)
+    is_s, straight_vals = is_straight(hand)
+    is_f, flush_vals = is_flush(hand)
 
-    for suit, suited_cards in suits.items():
-        if len(suited_cards) >= 5:
-            ok, straight_ranks = is_straight_from_cards(suited_cards)
-            if ok:
-                return True, straight_ranks
-
+    if is_s and is_f:
+        return True, straight_vals  # ascending, as you wanted
     return False, []
 
 # test section
