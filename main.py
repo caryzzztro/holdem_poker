@@ -10,11 +10,18 @@ def main():
     name = input('please enter your name')
     # enter player's chip
     chip = input('please enter how many chips you wanna start (default is 100)')
+    try:
+        chip = int(chip)
+    # input integer value of chip
+    except ValueError:
+        raise("Please input integer value!")
     # tips
     print('Before the game start, this game is designed to train player 1v1 skill in Texas Hodem poker, and the blind 1')
     p = player.Player(name,chip)
+    bot = player.Player(name='GOD HAND',is_bot=True,chips=100)
     # draw a card to start who will be the first dealer
     while True:
+        pass
 
 
 
@@ -22,6 +29,6 @@ def main():
 
 
 if __name__ == '__main__':
-    pass
+    main()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
