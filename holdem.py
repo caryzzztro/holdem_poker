@@ -7,9 +7,11 @@ RANK_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
                'J': 11, 'Q': 12, 'K': 13, 'A': 14}
 SUIT_VALUES = {'♠': 4, '♥': 3, '♦': 2, '♣': 1}
 
+# rank the value of list for the hand from high to low
 def rank_value_list(ranks):
     return sorted(ranks, key=lambda r: RANK_VALUES[r], reverse=True)
 
+# get the group of rank, sort by the frequency of the rank, if the frequency is the same, sort by the rank
 def get_rank_groups(hand):
     ranks = [card.rank for card in hand]
     freq = {}
@@ -25,12 +27,14 @@ def get_rank_groups(hand):
 
     return grouped  # e.g., {3: ['K'], 2: ['T']} for a full house
 
+# get the suit of the hand group
 def get_suit_groups(hand):
     suits = {}
     for card in hand:
         suits.setdefault(card.suit, []).append(card)
     return suits
 
+# determine the card types
 def is_full_house(hand):
     groups = get_rank_groups(hand)
 
@@ -110,9 +114,50 @@ def is_straight_flush(hand):
         return True, straight_vals  # ascending, as you wanted
     return False, []
 
+HAND_RANKINGS = [
+    ('Straight Flush', is_straight_flush),
+    ('Four of a Kind', is_four_of_a_kind),
+    ('Full House', is_full_house),
+    ('Flush', is_flush),
+    ('Straight', is_straight),
+    ('Three of a Kind', is_three_of_a_kind),
+    ('Two Pair', is_two_pair),
+    ('One Pair', is_one_pair),
+    ('High Card', is_high_card),
+]
+# implement the classify function to return the highest type of hand for the 5 card of hand(high to low), if the
+# cardtype is true return true and the hand of the card
+def classify_hand(hand):
+    for name, func in HAND_RANKINGS:
+        cardtype, ranks = func(hand)
+        if cardtype:
+            return name, ranks
+    return "Unknown", []
+
 # test section
 if __name__ == '__main__':
-    pass
+    # # a test function that test the type of the card
+    # def test_random_hand():
+    #     deck = Deck()
+    #     hand = deck.deal(5)
+    #     print("Hand:", hand)
+    #
+    #     hand_type, value = classify_hand(hand)
+    #     print("Hand Type:", hand_type)
+    #     print("Value:", value)
+    #     return hand_type
+    # result_lst = {}
+    # # random generate 100000 times for summarise the hand
+    # for _ in range(100000):
+    #     print("----- New Hand -----")
+    #     type = test_random_hand()
+    #     if type not in result_lst:
+    #         result_lst[type] = 0
+    #     result_lst[type] += 1
+    #
+    # # summarise the hand
+    # print("----- type summary -----")
+    # print(result_lst)
     # def is_flush(suits)->(bool):
     #     flush = all(suit == suits[0] for suit in suits)
     #     return flush
