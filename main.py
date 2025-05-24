@@ -59,16 +59,6 @@ def main():
         elif choice != '1':
             print("Invalid input. Try again.")
             continue
-        choice = input("Enter your choice: ")
-
-        if choice == '3':
-            break
-        elif choice == '2':
-            show_help_menu()
-            continue
-        elif choice != '1':
-            print("Invalid input. Try again.")
-            continue
 
         hand_count += 1
         print(f"\n=== HAND {hand_count} START ===")
