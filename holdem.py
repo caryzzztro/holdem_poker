@@ -1,5 +1,7 @@
 from deck import Card, Deck
 from collections import Counter
+import itertools
+
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 SUITS = ['♠', '♥', '♣', '♦']
 RANK_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
@@ -133,6 +135,64 @@ def classify_hand(hand):
         if cardtype:
             return name, ranks
     return "Unknown", []
+
+def get_best_hand(cards):
+    best_rank_index = len(HAND_RANKINGS)
+    best_ranks = []
+
+    for combo in itertools.combinations(cards, 5):
+        hand_type, rank_list = classify_hand(combo)
+        hand_index = [name for name, _ in HAND_RANKINGS].index(hand_type)
+
+        # Better hand if higher in ranking OR equal hand type but better rank_list
+        if hand_index < best_rank_index:
+            best_rank_index = hand_index
+            best_ranks = rank_list
+            best_hand = combo
+        elif hand_index == best_rank_index:
+            # Compare tiebreakers
+            for r1, r2 in zip(rank_list, best_ranks):
+                if RANK_VALUES[r1] > RANK_VALUES[r2]:
+                    best_ranks = rank_list
+                    best_hand = combo
+                    break
+                elif RANK_VALUES[r1] < RANK_VALUES[r2]:
+                    break
+
+    return list(best_hand)
+
+# Compare two best 5-card hands from 5 - 7 cards (depending on the stage of the game)
+def compare_hands(hand1_7, hand2_7):
+    best1 = get_best_hand(hand1_7)
+    best2 = get_best_hand(hand2_7)
+
+    type1, ranks1 = classify_hand(best1)
+    type2, ranks2 = classify_hand(best2)
+
+    hand_order = [name for name, _ in HAND_RANKINGS]
+    rank1 = hand_order.index(type1)
+    rank2 = hand_order.index(type2)
+
+    if rank1 < rank2:
+        return 'player1'
+    elif rank1 > rank2:
+        return 'player2'
+    else:
+        for r1, r2 in zip(ranks1, ranks2):
+            v1 = RANK_VALUES[r1]
+            v2 = RANK_VALUES[r2]
+            if v1 > v2:
+                return 'player1'
+            elif v2 > v1:
+                return 'player2'
+        return 'chop'
+# get the best turn from current step
+def get_best_hand_stage(player_hand, board):
+    cards = player_hand + board
+    if len(cards) < 5:
+        return None  # not enough cards yet
+
+    return get_best_hand(cards)  # reuse the 7→5 logic
 
 # test section
 if __name__ == '__main__':
