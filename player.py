@@ -7,7 +7,7 @@ class Player:
         self.current_bet = 0
         self.folded = False
 
-
+    # bet the chips
     def bet(self, min_bet, pot):
         while True:
             try:
@@ -24,6 +24,7 @@ class Player:
             except ValueError:
                 print("Please enter a valid number.")
 
+    # raise the bet
     def raise_bet(self, current_bet, pot):
         while True:
             try:
@@ -40,6 +41,7 @@ class Player:
             except ValueError:
                 print("Please enter a valid number.")
 
+    # call the bet
     def call(self, to_call, pot):
         if self.chips < to_call:
             print(f"{self.name} goes all-in with {self.chips} (not enough to call {to_call}).")
@@ -53,6 +55,7 @@ class Player:
             print(f"{self.name} calls {to_call}. Remaining chips: {self.chips}")
             return to_call, pot
 
+    # all in the pot
     def all_in(self, pot):
         all_in_amount = self.chips
         self.chips = 0
