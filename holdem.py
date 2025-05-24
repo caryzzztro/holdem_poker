@@ -193,7 +193,6 @@ def get_best_hand_stage(player_hand, board):
         return None  # not enough cards yet
 
     return get_best_hand(cards)  # selecting the best hand
-
 # test section
 if __name__ == '__main__':
     pass

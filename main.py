@@ -3,16 +3,15 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 from player import Player
-from deck import Deck
+from deck import Deck, compare_cards
 from engine import start_game
-from holdem import get_best_hand_stage, classify_hand, compare_hands
+from holdem import get_best_hand_stage, classify_hand, compare_hands,compare_hands
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 SUITS = ['♠', '♥', '♣', '♦']
 RANK_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
                '7': 7, '8': 8, '9': 9, 'T': 10,
                'J': 11, 'Q': 12, 'K': 13, 'A': 14}
 SUIT_VALUES = {'♠': 4, '♥': 3, '♦': 2, '♣': 1}
-
 
 def main():
     print("Welcome to Heads-Up Texas Hold’em!")
@@ -23,8 +22,8 @@ def main():
     except:
         chips = 100
 
-    player = Player(name, chips)
-    bot = Player("GOD HAND", 100, is_bot=True)
+    player = Player(name, chips = chips)
+    bot = Player("GOD HAND", chips= 100, is_bot=True)
 
     # First hand: draw for roles
     deck = Deck()
@@ -34,7 +33,7 @@ def main():
     print(f"{player.name} draws: {card1}")
     print(f"{bot.name} draws: {card2}")
 
-    if Deck.compare_cards(card1, card2) > 0:
+    if compare_cards(card1, card2) > 0:
         dealer, beginner = player, bot
     else:
         dealer, beginner = bot, player

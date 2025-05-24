@@ -6,22 +6,43 @@ def print_chip_summary(dealer, beginner):
     print(f"{dealer.name}: {dealer.chips} chips")
     print(f"{beginner.name}: {beginner.chips} chips")
     print("-------------------\n")
+from deck import Deck
+from holdem import compare_hands
+from holdem import get_best_hand_stage, classify_hand
+
 def start_game(dealer, beginner):
     print("\n=== NEW HAND ===")
     deck = Deck()
     pot = 0
 
-    # Pre-flop (hole cards + blind + dealer action)
-    pot, continue_game = pre_flop(dealer, beginner, deck, pot)
-    if not continue_game:
-        return  # someone folded pre-flop
+    # Pre-flop handles hole cards, blind, and dealer action
+    pot, status = pre_flop(dealer, beginner, deck, pot)
+    if status == 'ended':
+        return  # someone folded
 
-    # Flop, Turn, River, and Betting
-    board, pot, status = play_round(dealer, beginner, deck, pot)
+    board = []
 
-    # If the hand ended early (someone folded), return
-    if status == "ended":
-        return
+    if status == 'allin':
+        # All-in happened pre-flop — reveal board with burn cards
+        deck.deal(1)  # burn
+        board += deck.deal(3)  # flop
+        deck.deal(1)  # burn
+        board += deck.deal(1)  # turn
+        deck.deal(1)  # burn
+        board += deck.deal(1)  # river
+
+        print(f"\nBoard: {board}")
+
+        for player in (dealer, beginner):
+            best = get_best_hand_stage(player.hand, board)
+            hand_type = classify_hand(best)[0]
+            print(f"{player.name}'s best hand: {best} ({hand_type})")
+
+    else:
+        # Play normally
+        board, pot, status = play_round(dealer, beginner, deck, pot)
+        if status == 'ended':
+            return
 
     # === SHOWDOWN ===
     print("\n=== SHOWDOWN ===")
@@ -32,10 +53,10 @@ def start_game(dealer, beginner):
     full2 = beginner.hand + board
     result = compare_hands(full1, full2)
 
-    if result == "player1":
+    if result == 'player1':
         print(f"{dealer.name} wins the pot of {pot} chips!")
         dealer.chips += pot
-    elif result == "player2":
+    elif result == 'player2':
         print(f"{beginner.name} wins the pot of {pot} chips!")
         beginner.chips += pot
     else:
@@ -43,11 +64,8 @@ def start_game(dealer, beginner):
         dealer.chips += pot // 2
         beginner.chips += pot - pot // 2
 
-    print_chip_summary(dealer, beginner)
-
-
 def pre_flop(dealer, beginner, deck, pot):
-    # Deal one card at a time in correct order
+    # Deal hole cards in proper order
     beginner.hand = [deck.deal(1)[0]]
     dealer.hand = [deck.deal(1)[0]]
     beginner.hand.append(deck.deal(1)[0])
@@ -65,46 +83,51 @@ def pre_flop(dealer, beginner, deck, pot):
 
     # Dealer acts
     print(f"\n{dealer.name}'s turn:")
-    print("1. Fold\n2. Call\n3. Raise\n4. All-in")
+    print("1. Fold")
+    print(f"2. Call ({blind})")
+    print("3. Raise")
+    print("4. All-in")
     action = input("Choose action: ")
 
-    if action == '1':  # dealer folds
+    if action == '1':
         print(f"{dealer.name} folds. {beginner.name} wins the pot of {pot} chips.")
         beginner.chips += pot
-        print_chip_summary(dealer, beginner)
-        return pot, False
+        return pot, 'ended'
     elif action == '2':
         _, pot = dealer.call(to_call=blind, pot=pot)
-        return pot, True
+        return pot, 'continue'
     elif action == '3':
-        amount, pot = dealer.raise_bet(current_bet, pot)
+        amount, pot = dealer.raise_bet(current_bet=blind, pot=pot)
         current_bet = amount
     elif action == '4':
-        amount, pot = dealer.all_in(pot)
+        amount, pot = dealer.all_in(pot=pot)
         current_bet = amount
     else:
+        print("Invalid input. Defaulting to call.")
         _, pot = dealer.call(to_call=blind, pot=pot)
-        return pot, True
+        return pot, 'continue'
 
-    # Beginner responds to raise/all-in
+    # Beginner must respond
     print(f"\n{beginner.name}'s turn to respond:")
-    print(f"1. Fold\n2. Call ({current_bet - blind})\n3. All-in")
+    print(f"1. Fold")
+    print(f"2. Call ({current_bet - blind})")
+    print("3. All-in")
     response = input("Choose action: ")
 
-    if response == '1':  # beginner folds
+    if response == '1':
         print(f"{beginner.name} folds. {dealer.name} wins the pot of {pot} chips.")
         dealer.chips += pot
-        print_chip_summary(dealer, beginner)
-        return pot, False
+        return pot, 'ended'
     elif response == '2':
         _, pot = beginner.call(to_call=current_bet - blind, pot=pot)
+        return pot, 'continue'
     elif response == '3':
-        _, pot = beginner.all_in(pot)
+        _, pot = beginner.all_in(pot=pot)
+        return pot, 'allin'
     else:
-        _, pot = beginner.call(to_call=current_bet - blind, pot=pot)
-
-    return pot, True
-
+        print("Invalid input. Defaulting to fold.")
+        dealer.chips += pot
+        return pot, 'ended'
 def betting_stage(first, second, pot, current_bet=0):
     print(f"\n=== Betting Round ===")
 
