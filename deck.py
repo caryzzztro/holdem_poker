@@ -49,6 +49,23 @@ class Deck:
     def deal(self, num=1):
         return [self.cards.pop() for _ in range(num)]
 
+    def compare_cards(self, card1, card2):
+        val1 = RANK_VALUES[card1.rank]
+        val2 = RANK_VALUES[card2.rank]
+
+        if val1 > val2:
+            return 1
+        elif val1 < val2:
+            return -1
+        else:
+            suit1 = SUIT_VALUES[card1.suit]
+            suit2 = SUIT_VALUES[card2.suit]
+            if suit1 > suit2:
+                return 1
+            elif suit1 < suit2:
+                return -1
+            else:
+                return 0
 
 # test
 if __name__ == '__main__':

@@ -136,6 +136,7 @@ def classify_hand(hand):
 
 # test section
 if __name__ == '__main__':
+    pass
     # # a test function that test the type of the card
     # def test_random_hand():
     #     deck = Deck()
