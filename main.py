@@ -40,7 +40,7 @@ def main():
     # Game intro tip
     print("\nThis game is designed to train 1v1 Texas Hold'em skills. Blinds are set to 1 chip.")
 
-    # Create player and opponent (not using bot logic yet)  # assuming your Player class is in player.py
+    # Create player and opponent (not using bot logic yet)
     player1 = player.Player(name, chips)
     player2 = player.Player(name="GOD HAND", is_bot=False, chips=100)  # manually controlled for now
 
@@ -89,7 +89,16 @@ def main():
         else:
             print("Invalid input. Please enter 1, 2, or 3.\n")
 
+def print_menu_block(title: str, lines: list[str], pad_char: str = '-'):
+    max_len = max(len(title.strip()) + 4, max(len(line) for line in lines))
+    centered_title = f" {title.strip()} ".center(max_len, pad_char)
+    print("\n" + centered_title)
 
+    for line in lines:
+        print(line.ljust(max_len))
+
+    print(pad_char * max_len)
+    return max_len  # optional
 
 def print_centered_title(title, content_lines, pad_char='-'):
     max_len = max(len(title) + 4, max(len(line) for line in content_lines))
@@ -97,50 +106,32 @@ def print_centered_title(title, content_lines, pad_char='-'):
     print(centered_title)
     return max_len
 def print_main_menu():
-    menu_title = " Texas Hold'em Trainer "
     options = [
         "1. Start Game",
         "2. Help",
         "3. Quit"
     ]
-
-    max_len = max(len(menu_title), max(len(opt) for opt in options)) + 4
-    print("\n" + menu_title.center(max_len, "="))
-
-    for opt in options:
-        print(opt.center(max_len))
-
-    print("-" * max_len)
+    print_menu_block("Texas Hold'em Trainer", options)
 def show_help_menu():
-
     while True:
         menu_options = [
             "1. Game Rules",
             "2. Poker Hand Rankings",
             "3. Exit Help"
         ]
-
-        max_len = max(len(line) for line in menu_options)
-        print("\n" + "=== Help Menu ===".center(max_len + 4))
-        for option in menu_options:
-            print(option.ljust(max_len))
-        print("-" * max_len)  # bottom line under the menu
+        print_menu_block("Help Menu", menu_options)
 
         choice = input("Please select an option (1-3): ")
-
 
         if choice == '1':
             rules = [
                 "This is a simplified 1v1 Texas Hold'em trainer.",
                 "Each player is dealt 2 hole cards.",
                 "Five community cards are revealed (Flop, Turn, River).",
-                "Dealer is always the last player to decide in thi game",
+                "Dealer is always the last player to decide in this game.",
                 "The goal is to make the best 5-card hand."
             ]
-            width = print_centered_title("Game Rules", rules)
-            for line in rules:
-                print(line.ljust(width))
-            print("-" * width)
+            print_menu_block("Game Rules", rules)
 
         elif choice == '2':
             hands = [
@@ -154,10 +145,7 @@ def show_help_menu():
                 "8. One Pair – One pair (e.g., J♦ J♠ 3♣ 7♥ 9♠)",
                 "9. High Card – No matching cards (e.g., A♠ 7♦ 6♣ 3♥ 2♠)"
             ]
-            width = print_centered_title("Hand Rankings", hands)
-            for line in hands:
-                print(line.ljust(width))
-            print("-" * width)
+            print_menu_block("Hand Rankings", hands)
 
         elif choice == '3':
             print("Exiting help menu.\n")
@@ -165,7 +153,6 @@ def show_help_menu():
 
         else:
             print("Invalid option. Please enter 1, 2, or 3.\n")
-
 
 # Press the green button in the gutter to run the script.
 
