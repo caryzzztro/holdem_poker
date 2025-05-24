@@ -192,7 +192,7 @@ def get_best_hand_stage(player_hand, board):
     if len(cards) < 5:
         return None  # not enough cards yet
 
-    return get_best_hand(cards)  # reuse the 7→5 logic
+    return get_best_hand(cards)  # selecting the best hand
 
 # test section
 if __name__ == '__main__':

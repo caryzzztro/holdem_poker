@@ -4,7 +4,8 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import player,random
 from deck import Deck
-import holdem
+from engine import start_game
+from holdem import get_best_hand_stage, classify_hand, compare_hands
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 SUITS = ['♠', '♥', '♣', '♦']
 RANK_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
@@ -82,6 +83,7 @@ def main():
             # begin the game
             print("Starting game...\n")
             start_game(dealer,beginner)
+
         elif choice == '2':
             show_help_menu()
         elif choice == '3':
@@ -90,82 +92,6 @@ def main():
         else:
             print("Invalid input. Please enter 1, 2, or 3.\n")
 
-def start_game(dealer, beginner):
-    print("\n=== Starting New Game ===")
-
-    # Step 1: Initialise deck and pot
-    deck = Deck()
-    # shuffle the deck
-    deck.shuffle()
-    pot = 0
-
-    # Step 2: Deal hole cards
-    beginner.hand += deck.deal()
-    dealer.hand += deck.deal()
-    beginner.hand += deck.deal()
-    dealer.hand += deck.deal()
-
-    # show the result
-    print(f"\n{dealer.name}'s hand: {dealer.hand}")
-    print(f"{beginner.name}'s hand: {beginner.hand}")
-
-    # Step 3: Post blind by beginner
-    blind_amount = 1
-    print(f"\n{beginner.name} posts blind of {blind_amount} chip.")
-    beginner.chips -= blind_amount
-    pot += blind_amount
-    current_bet = blind_amount
-
-    # Step 4: Dealer's turn to act (optional call)
-    print(f"\n{dealer.name}'s turn:")
-    print("1. Fold")
-    print(f"2. Call ({blind_amount} chip)")
-    print("3. Raise")
-    print("4. All-in")
-
-    choice = input("Choose your action: ")
-
-    if choice == '1':
-        print(f"{dealer.name} folds. {beginner.name} wins the pot of {pot} chips!")
-        beginner.chips += pot
-        return
-    elif choice == '2':
-        amount, pot = dealer.call(to_call=blind_amount, pot=pot)
-    elif choice == '3':
-        amount, pot = dealer.raise_bet(current_bet=blind_amount, pot=pot)
-        current_bet = amount
-    elif choice == '4':
-        amount, pot = dealer.all_in(pot=pot)
-        current_bet = amount
-    else:
-        print("Invalid input. Defaulting to call.")
-        amount, pot = dealer.call(to_call=blind_amount, pot=pot)
-
-    # Step 5: Beginner's chance to respond (if dealer raised or all-in)
-    if current_bet > blind_amount:
-        to_call = current_bet - blind_amount
-        print(f"\n{beginner.name}'s turn to respond to raise:")
-        print(f"1. Fold")
-        print(f"2. Call ({to_call} chip)")
-        print("3. All-in")
-        choice = input("Choose your action: ")
-
-        if choice == '1':
-            print(f"{beginner.name} folds. {dealer.name} wins the pot of {pot} chips!")
-            dealer.chips += pot
-            return
-        elif choice == '2':
-            amount, pot = beginner.call(to_call=to_call, pot=pot)
-        elif choice == '3':
-            amount, pot = beginner.all_in(pot=pot)
-        else:
-            print("Invalid input. Defaulting to call.")
-            amount, pot = beginner.call(to_call=to_call, pot=pot)
-
-    # Show pot and chip status
-    print(f"\nPot: {pot}")
-    print(f"{dealer.name} Chips: {dealer.chips}")
-    print(f"{beginner.name} Chips: {beginner.chips}")
 def print_menu_block(title: str, lines: list[str], pad_char: str = '-'):
     max_len = max(len(title.strip()) + 4, max(len(line) for line in lines))
     centered_title = f" {title.strip()} ".center(max_len, pad_char)
@@ -231,9 +157,75 @@ def show_help_menu():
         else:
             print("Invalid option. Please enter 1, 2, or 3.\n")
 
+# the stage of pre-flop
+def pre_flop(dealer, beginner, deck, pot):
+    # Deal hole cards
+    beginner.hand += deck.deal()
+    dealer.hand += deck.deal()
+    beginner.hand += deck.deal()
+    dealer.hand += deck.deal()
+    print(f"{dealer.name}'s hand: {dealer.hand}")
+    print(f"{beginner.name}'s hand: {beginner.hand}")
+
+    # Post blind
+    blind_amount = 1
+    print(f"{beginner.name} posts blind of {blind_amount} chip.")
+    beginner.chips -= blind_amount
+    pot += blind_amount
+    current_bet = blind_amount
+
+    # Dealer acts first
+    print(f"\n{dealer.name}'s turn:")
+    print("1. Fold")
+    print(f"2. Call ({blind_amount} chip)")
+    print("3. Raise")
+    print("4. All-in")
+    choice = input("Choose your action: ")
+
+    if choice == '1':
+        print(f"{dealer.name} folds. {beginner.name} wins the pot of {pot} chips!")
+        beginner.chips += pot
+        return False  # hand ends
+    elif choice == '2':
+        _, pot = dealer.call(to_call=blind_amount, pot=pot)
+        return True  # proceed to flop
+    elif choice == '3':
+        amount, pot = dealer.raise_bet(current_bet=blind_amount, pot=pot)
+        current_bet = amount
+    elif choice == '4':
+        amount, pot = dealer.all_in(pot=pot)
+        current_bet = amount
+    else:
+        print("Invalid input. Defaulting to call.")
+        _, pot = dealer.call(to_call=blind_amount, pot=pot)
+        return True
+
+    # Beginner must respond to raise/all-in
+    to_call = current_bet - blind_amount
+    print(f"\n{beginner.name}'s turn to respond:")
+    print(f"1. Fold")
+    print(f"2. Call ({to_call} chip)")
+    print("3. All-in")
+    response = input("Choose your action: ")
+
+    if response == '1':
+        print(f"{beginner.name} folds. {dealer.name} wins the pot of {pot} chips!")
+        dealer.chips += pot
+        return False
+    elif response == '2':
+        _, pot = beginner.call(to_call=to_call, pot=pot)
+        return True
+    elif response == '3':
+        _, pot = beginner.all_in(pot=pot)
+        return True
+    else:
+        print("Invalid input. Defaulting to fold.")
+        dealer.chips += pot
+        return False
+
+
+
 # Press the green button in the gutter to run the script.
-
-
 if __name__ == '__main__':
     main()
 
