@@ -108,99 +108,102 @@ def pre_flop(dealer, beginner, deck, pot):
 def betting_stage(first, second, pot, current_bet=0):
     print(f"\n=== Betting Round ===")
 
-    # First player action
+    # First player acts
     print(f"\n{first.name}'s turn:")
-    print("1. Check" if current_bet == 0 else f"1. Call ({current_bet} chip)")
+    print("1. Check" if current_bet == 0 else f"1. Call ({current_bet})")
     print("2. Raise")
     print("3. All-in")
     print("4. Fold")
-
     choice1 = input("Choose your action: ")
+
     if choice1 == '1':
         if current_bet > 0:
-            _, pot = first.call(to_call=current_bet, pot=pot)
-        else:
-            print(f"{first.name} checks.")
+            _, pot = first.call(current_bet, pot)
     elif choice1 == '2':
-        amount, pot = first.raise_bet(current_bet=current_bet, pot=pot)
+        amount, pot = first.raise_bet(current_bet, pot)
         current_bet = amount
     elif choice1 == '3':
-        amount, pot = first.all_in(pot=pot)
+        amount, pot = first.all_in(pot)
         current_bet = amount
 
-        # Now only one response allowed
+        # Second player responds once to all-in
         print(f"\n{second.name}'s turn to respond to all-in:")
-        print(f"1. Call ({current_bet} chip)")
-        print("2. Fold")
-        resp = input("Choose your action: ")
+        print(f"1. Call ({current_bet})")
+        print("2. All-in")
+        print("3. Fold")
+        resp = input("Choose: ")
+
         if resp == '1':
             _, pot = second.call(to_call=current_bet, pot=pot)
             return pot, 'allin'
+        elif resp == '2':
+            _, pot = second.all_in(pot)
+            return pot, 'allin'
         else:
-            print(f"{second.name} folds. {first.name} wins the pot of {pot} chips!")
+            print(f"{second.name} folds. {first.name} wins {pot} chips!")
             first.chips += pot
             return pot, 'ended'
     elif choice1 == '4':
-        print(f"{first.name} folds. {second.name} wins the pot of {pot} chips!")
+        print(f"{first.name} folds. {second.name} wins {pot} chips!")
         second.chips += pot
         return pot, 'ended'
     else:
         if current_bet > 0:
-            _, pot = first.call(to_call=current_bet, pot=pot)
+            _, pot = first.call(current_bet, pot)
 
-    # Second player action (only reached if no one all-in yet)
+    # Second player acts (only if no all-in from first)
     print(f"\n{second.name}'s turn:")
-    print("1. Check" if current_bet == 0 else f"1. Call ({current_bet} chip)")
+    print("1. Check" if current_bet == 0 else f"1. Call ({current_bet})")
     print("2. Raise")
     print("3. All-in")
     print("4. Fold")
-
     choice2 = input("Choose your action: ")
+
     if choice2 == '1':
         if current_bet > 0:
-            _, pot = second.call(to_call=current_bet, pot=pot)
-        else:
-            print(f"{second.name} checks.")
+            _, pot = second.call(current_bet, pot)
     elif choice2 == '2':
-        amount, pot = second.raise_bet(current_bet=current_bet, pot=pot)
+        amount, pot = second.raise_bet(current_bet, pot)
         current_bet = amount
-        print(f"\n{first.name}'s turn to respond to raise:")
-        print(f"1. Call ({current_bet} chip)")
+        # First player responds to raise
+        print(f"\n{first.name}'s turn to respond:")
+        print(f"1. Call ({current_bet})")
         print("2. All-in")
         print("3. Fold")
-        resp = input("Choose your action: ")
+        resp = input("Choose: ")
         if resp == '1':
-            _, pot = first.call(to_call=current_bet, pot=pot)
+            _, pot = first.call(current_bet, pot)
         elif resp == '2':
-            _, pot = first.all_in(pot=pot)
+            _, pot = first.all_in(pot)
             return pot, 'allin'
-        elif resp == '3':
-            print(f"{first.name} folds. {second.name} wins the pot of {pot} chips!")
+        else:
+            print(f"{first.name} folds. {second.name} wins {pot} chips!")
             second.chips += pot
             return pot, 'ended'
     elif choice2 == '3':
-        amount, pot = second.all_in(pot=pot)
+        amount, pot = second.all_in(pot)
         current_bet = amount
         print(f"\n{first.name}'s turn to respond to all-in:")
-        print(f"1. Call ({current_bet} chip)")
+        print(f"1. Call ({current_bet})")
         print("2. Fold")
-        resp = input("Choose your action: ")
+        resp = input("Choose: ")
         if resp == '1':
-            _, pot = first.call(to_call=current_bet, pot=pot)
+            _, pot = first.call(current_bet, pot)
             return pot, 'allin'
         else:
-            print(f"{first.name} folds. {second.name} wins the pot of {pot} chips!")
+            print(f"{first.name} folds. {second.name} wins {pot} chips!")
             second.chips += pot
             return pot, 'ended'
     elif choice2 == '4':
-        print(f"{second.name} folds. {first.name} wins the pot of {pot} chips!")
+        print(f"{second.name} folds. {first.name} wins {pot} chips!")
         first.chips += pot
         return pot, 'ended'
     else:
         if current_bet > 0:
-            _, pot = second.call(to_call=current_bet, pot=pot)
+            _, pot = second.call(current_bet, pot)
 
     return pot, 'continue'
+
 
 
 
