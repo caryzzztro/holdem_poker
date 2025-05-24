@@ -2,7 +2,7 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-import player,random
+from player import Player
 from deck import Deck
 from engine import start_game
 from holdem import get_best_hand_stage, classify_hand, compare_hands
@@ -15,82 +15,75 @@ SUIT_VALUES = {'♠': 4, '♥': 3, '♦': 2, '♣': 1}
 
 
 def main():
-    # Ask for player's name, can not be same as bot name
-    while True:
-        name = input("Please enter your name: ")
-        if name == 'GOD HAND':
-            print("Your name should not be same as bot's name")
-        else:
-            break
-
-    # Ask for starting chips with default fallback
-    chip_input = input("Please enter how many chips you want to start with (default is 100, max is 400): ")
+    print("Welcome to Heads-Up Texas Hold’em!")
+    name = input("Enter your name: ")
+    chip_input = input("Enter starting chips (default 100): ")
     try:
-        if not chip_input.strip():
-            chips = 100
-        else:
-            chips = int(chip_input)
-            if chips > 400:
-                print("Max starting chips is 400. Setting chips to 400.")
-                chips = 400
-            elif chips <= 0:
-                print("Chip amount must be positive. Using default: 100.")
-                chips = 100
-    except ValueError:
-        print("Invalid input. Using default: 100 chips.")
+        chips = int(chip_input)
+    except:
         chips = 100
-    # Game intro tip
-    print("\nThis game is designed to train 1v1 Texas Hold'em skills. Blinds are set to 1 chip.")
+
+    player = Player(name, chips)
+    bot = Player("GOD HAND", 100, is_bot=True)
+
+    # First hand: draw for roles
+    deck = Deck()
+    print("\nDrawing one card each to decide first dealer...")
+    card1 = deck.deal(1)[0]
+    card2 = deck.deal(1)[0]
+    print(f"{player.name} draws: {card1}")
+    print(f"{bot.name} draws: {card2}")
+
+    if Deck.compare_cards(card1, card2) > 0:
+        dealer, beginner = player, bot
+    else:
+        dealer, beginner = bot, player
+
+    print(f"\nFirst dealer: {dealer.name}")
+    print(f"First beginner: {beginner.name}")
+
+    hand_count = 0
 
     while True:
-        print("Game Start!")
-        print_main_menu()
-        choice = input("Enter your choice (1-3): ")
-
-        if choice == '1':
-            # Create player and opponent (not using bot logic yet)
-            player1 = player.Player(name, chips)
-            player2 = player.Player(name="GOD HAND", is_bot=False, chips=100)  # manually controlled for now
-
-            # Draw to decide who deals first (example logic placeholder)
-
-            # Create and shuffle deck
-            deck = Deck()
-
-            print("\nDrawing one card each to decide dealer...")
-
-            card1 = deck.deal(1)[0]
-            card2 = deck.deal(1)[0]
-
-            print(f"{player1.name} draws: {card1}")
-            print(f"{player2.name} draws: {card2}")
-
-            comparison = deck.compare_cards(card1, card2)
-
-            if comparison == 1:
-                dealer = player1
-                beginner = player2
-            elif comparison == -1:
-                dealer = player2
-                beginner = player1
-            else:
-                dealer = player1  # player1 drew first
-                beginner = player2
-                print("Cards are tied! First drawer becomes dealer.")
-
-            print(f"\nDealer is: {dealer.name}")
-            print(f"Beginner (acts first): {beginner.name}")
-            # begin the game
-            print("Starting game...\n")
-            start_game(dealer,beginner)
-
-        elif choice == '2':
-            show_help_menu()
-        elif choice == '3':
-            print("Thanks for playing!")
+        # End game if someone is out of chips
+        if player.chips <= 0 or bot.chips <= 0:
             break
-        else:
-            print("Invalid input. Please enter 1, 2, or 3.\n")
+
+        print("\n--- Game Menu ---")
+        print("1. Start Next Hand")
+        print("2. End Game")
+        choice = input("Enter your choice: ")
+
+        if choice == '2':
+            break
+        elif choice != '1':
+            print("Invalid input. Try again.")
+            continue
+
+        hand_count += 1
+        print(f"\n=== HAND {hand_count} START ===")
+        start_game(dealer, beginner)
+
+        print(f"\nCurrent chips:")
+        print(f"{player.name}: {player.chips}")
+        print(f"{bot.name}: {bot.chips}")
+
+        # Swap roles
+        dealer, beginner = beginner, dealer
+
+    # Game over summary
+    print("\n=== GAME OVER ===")
+    print(f"Total hands played: {hand_count}")
+    if player.chips == 0:
+        print(f"{player.name} is out of chips. {bot.name} wins!")
+    elif bot.chips == 0:
+        print(f"{bot.name} is out of chips. {player.name} wins!")
+    else:
+        print("Game ended by user.")
+
+    print(f"\nFinal chip counts:")
+    print(f"{player.name}: {player.chips}")
+    print(f"{bot.name}: {bot.chips}")
 
 def print_menu_block(title: str, lines: list[str], pad_char: str = '-'):
     max_len = max(len(title.strip()) + 4, max(len(line) for line in lines))
