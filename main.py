@@ -2,7 +2,8 @@
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-import deck,player,random
+import player,random
+from deck import Deck
 import holdem
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 SUITS = ['♠', '♥', '♣', '♦']
@@ -40,47 +41,47 @@ def main():
     # Game intro tip
     print("\nThis game is designed to train 1v1 Texas Hold'em skills. Blinds are set to 1 chip.")
 
-    # Create player and opponent (not using bot logic yet)
-    player1 = player.Player(name, chips)
-    player2 = player.Player(name="GOD HAND", is_bot=False, chips=100)  # manually controlled for now
-
-    # Draw to decide who deals first (example logic placeholder)
-
-    # Create and shuffle deck
-    game_deck = deck.Deck()
-
-    print("\nDrawing one card each to decide dealer...")
-
-    card1 = game_deck.deal(1)[0]
-    card2 = game_deck.deal(1)[0]
-
-    print(f"{player1.name} draws: {card1}")
-    print(f"{player2.name} draws: {card2}")
-
-    comparison = game_deck.compare_cards(card1, card2)
-
-    if comparison == 1:
-        dealer = player1
-        beginner = player2
-    elif comparison == -1:
-        dealer = player2
-        beginner = player1
-    else:
-        dealer = player1  # player1 drew first
-        beginner = player2
-        print("Cards are tied! First drawer becomes dealer.")
-
-    print(f"\nDealer is: {dealer.name}")
-    print(f"Beginner (acts first): {beginner.name}")
-    # begin the game
     while True:
         print("Game Start!")
         print_main_menu()
         choice = input("Enter your choice (1-3): ")
 
         if choice == '1':
+            # Create player and opponent (not using bot logic yet)
+            player1 = player.Player(name, chips)
+            player2 = player.Player(name="GOD HAND", is_bot=False, chips=100)  # manually controlled for now
+
+            # Draw to decide who deals first (example logic placeholder)
+
+            # Create and shuffle deck
+            deck = Deck()
+
+            print("\nDrawing one card each to decide dealer...")
+
+            card1 = deck.deal(1)[0]
+            card2 = deck.deal(1)[0]
+
+            print(f"{player1.name} draws: {card1}")
+            print(f"{player2.name} draws: {card2}")
+
+            comparison = deck.compare_cards(card1, card2)
+
+            if comparison == 1:
+                dealer = player1
+                beginner = player2
+            elif comparison == -1:
+                dealer = player2
+                beginner = player1
+            else:
+                dealer = player1  # player1 drew first
+                beginner = player2
+                print("Cards are tied! First drawer becomes dealer.")
+
+            print(f"\nDealer is: {dealer.name}")
+            print(f"Beginner (acts first): {beginner.name}")
+            # begin the game
             print("Starting game...\n")
-            # start_game()
+            start_game(dealer,beginner)
         elif choice == '2':
             show_help_menu()
         elif choice == '3':
@@ -89,6 +90,82 @@ def main():
         else:
             print("Invalid input. Please enter 1, 2, or 3.\n")
 
+def start_game(dealer, beginner):
+    print("\n=== Starting New Game ===")
+
+    # Step 1: Initialise deck and pot
+    deck = Deck()
+    # shuffle the deck
+    deck.shuffle()
+    pot = 0
+
+    # Step 2: Deal hole cards
+    beginner.hand += deck.deal()
+    dealer.hand += deck.deal()
+    beginner.hand += deck.deal()
+    dealer.hand += deck.deal()
+
+    # show the result
+    print(f"\n{dealer.name}'s hand: {dealer.hand}")
+    print(f"{beginner.name}'s hand: {beginner.hand}")
+
+    # Step 3: Post blind by beginner
+    blind_amount = 1
+    print(f"\n{beginner.name} posts blind of {blind_amount} chip.")
+    beginner.chips -= blind_amount
+    pot += blind_amount
+    current_bet = blind_amount
+
+    # Step 4: Dealer's turn to act (optional call)
+    print(f"\n{dealer.name}'s turn:")
+    print("1. Fold")
+    print(f"2. Call ({blind_amount} chip)")
+    print("3. Raise")
+    print("4. All-in")
+
+    choice = input("Choose your action: ")
+
+    if choice == '1':
+        print(f"{dealer.name} folds. {beginner.name} wins the pot of {pot} chips!")
+        beginner.chips += pot
+        return
+    elif choice == '2':
+        amount, pot = dealer.call(to_call=blind_amount, pot=pot)
+    elif choice == '3':
+        amount, pot = dealer.raise_bet(current_bet=blind_amount, pot=pot)
+        current_bet = amount
+    elif choice == '4':
+        amount, pot = dealer.all_in(pot=pot)
+        current_bet = amount
+    else:
+        print("Invalid input. Defaulting to call.")
+        amount, pot = dealer.call(to_call=blind_amount, pot=pot)
+
+    # Step 5: Beginner's chance to respond (if dealer raised or all-in)
+    if current_bet > blind_amount:
+        to_call = current_bet - blind_amount
+        print(f"\n{beginner.name}'s turn to respond to raise:")
+        print(f"1. Fold")
+        print(f"2. Call ({to_call} chip)")
+        print("3. All-in")
+        choice = input("Choose your action: ")
+
+        if choice == '1':
+            print(f"{beginner.name} folds. {dealer.name} wins the pot of {pot} chips!")
+            dealer.chips += pot
+            return
+        elif choice == '2':
+            amount, pot = beginner.call(to_call=to_call, pot=pot)
+        elif choice == '3':
+            amount, pot = beginner.all_in(pot=pot)
+        else:
+            print("Invalid input. Defaulting to call.")
+            amount, pot = beginner.call(to_call=to_call, pot=pot)
+
+    # Show pot and chip status
+    print(f"\nPot: {pot}")
+    print(f"{dealer.name} Chips: {dealer.chips}")
+    print(f"{beginner.name} Chips: {beginner.chips}")
 def print_menu_block(title: str, lines: list[str], pad_char: str = '-'):
     max_len = max(len(title.strip()) + 4, max(len(line) for line in lines))
     centered_title = f" {title.strip()} ".center(max_len, pad_char)
