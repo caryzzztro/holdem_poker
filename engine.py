@@ -106,12 +106,6 @@ def pre_flop(dealer, beginner, deck, pot):
     return pot, True
 
 def betting_stage(first, second, pot, current_bet=0):
-    """
-    first: Player who acts first in the round
-    second: Player who acts second
-    pot: current pot
-    current_bet: amount already on the table
-    """
     print(f"\n=== Betting Round ===")
 
     # First player action
@@ -133,16 +127,28 @@ def betting_stage(first, second, pot, current_bet=0):
     elif choice1 == '3':
         amount, pot = first.all_in(pot=pot)
         current_bet = amount
+
+        # Now only one response allowed
+        print(f"\n{second.name}'s turn to respond to all-in:")
+        print(f"1. Call ({current_bet} chip)")
+        print("2. Fold")
+        resp = input("Choose your action: ")
+        if resp == '1':
+            _, pot = second.call(to_call=current_bet, pot=pot)
+            return pot, 'allin'
+        else:
+            print(f"{second.name} folds. {first.name} wins the pot of {pot} chips!")
+            first.chips += pot
+            return pot, 'ended'
     elif choice1 == '4':
         print(f"{first.name} folds. {second.name} wins the pot of {pot} chips!")
         second.chips += pot
         return pot, 'ended'
     else:
-        print("Invalid input. Defaulting to check/call.")
         if current_bet > 0:
             _, pot = first.call(to_call=current_bet, pot=pot)
 
-    # Second player action
+    # Second player action (only reached if no one all-in yet)
     print(f"\n{second.name}'s turn:")
     print("1. Check" if current_bet == 0 else f"1. Call ({current_bet} chip)")
     print("2. Raise")
@@ -158,7 +164,6 @@ def betting_stage(first, second, pot, current_bet=0):
     elif choice2 == '2':
         amount, pot = second.raise_bet(current_bet=current_bet, pot=pot)
         current_bet = amount
-        # back to first player to respond
         print(f"\n{first.name}'s turn to respond to raise:")
         print(f"1. Call ({current_bet} chip)")
         print("2. All-in")
@@ -168,6 +173,7 @@ def betting_stage(first, second, pot, current_bet=0):
             _, pot = first.call(to_call=current_bet, pot=pot)
         elif resp == '2':
             _, pot = first.all_in(pot=pot)
+            return pot, 'allin'
         elif resp == '3':
             print(f"{first.name} folds. {second.name} wins the pot of {pot} chips!")
             second.chips += pot
@@ -175,13 +181,13 @@ def betting_stage(first, second, pot, current_bet=0):
     elif choice2 == '3':
         amount, pot = second.all_in(pot=pot)
         current_bet = amount
-        # first player responds
         print(f"\n{first.name}'s turn to respond to all-in:")
         print(f"1. Call ({current_bet} chip)")
         print("2. Fold")
         resp = input("Choose your action: ")
         if resp == '1':
             _, pot = first.call(to_call=current_bet, pot=pot)
+            return pot, 'allin'
         else:
             print(f"{first.name} folds. {second.name} wins the pot of {pot} chips!")
             second.chips += pot
@@ -191,11 +197,11 @@ def betting_stage(first, second, pot, current_bet=0):
         first.chips += pot
         return pot, 'ended'
     else:
-        print("Invalid input. Defaulting to check/call.")
         if current_bet > 0:
             _, pot = second.call(to_call=current_bet, pot=pot)
 
     return pot, 'continue'
+
 
 
 
