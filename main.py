@@ -3,9 +3,9 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 from player import Player
-from deck import Deck, compare_cards
+from deck import Deck
 from engine import start_game
-from holdem import get_best_hand_stage, classify_hand, compare_hands,compare_hands
+from holdem import get_best_hand_stage, classify_hand, compare_hands, compare_cards
 RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 SUITS = ['♠', '♥', '♣', '♦']
 RANK_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
@@ -13,18 +13,42 @@ RANK_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
                'J': 11, 'Q': 12, 'K': 13, 'A': 14}
 SUIT_VALUES = {'♠': 4, '♥': 3, '♦': 2, '♣': 1}
 
+
 def main():
     print("Welcome to Heads-Up Texas Hold’em!")
     name = input("Enter your name: ")
     chip_input = input("Enter starting chips (default 100): ")
     try:
-        chips = int(chip_input)
+        player_chips = int(chip_input)
     except:
-        chips = 100
+        player_chips = 100
 
-    player = Player(name, chips = chips)
-    bot = Player("GOD HAND", chips= 100, is_bot=True)
+    # Add bot chip selection
+    print("\nSelect bot difficulty / chip level:")
+    print("1. Easy Bot (100 chips)")
+    print("2. Normal Bot (200 chips)")
+    print("3. Hard Bot (500 chips)")
+    print("4. Custom amount")
+    bot_choice = input("Enter your choice (1-4): ")
 
+    if bot_choice == '1':
+        bot_chips = 100
+    elif bot_choice == '2':
+        bot_chips = 200
+    elif bot_choice == '3':
+        bot_chips = 500
+    elif bot_choice == '4':
+        try:
+            bot_chips = int(input("Enter custom chip amount for bot: "))
+        except:
+            print("Invalid input. Defaulting to 100 chips.")
+            bot_chips = 100
+    else:
+        print("Invalid input. Defaulting to 100 chips.")
+        bot_chips = 100
+
+    player = Player(name, chips=player_chips)
+    bot = Player("GOD HAND", chips=bot_chips, is_bot=True)
     # First hand: draw for roles
     deck = Deck()
     print("\nDrawing one card each to decide first dealer...")

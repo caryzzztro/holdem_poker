@@ -1,64 +1,39 @@
 class Player:
-    def __init__(self, name, is_bot=False, chips=1000):
+    def __init__(self, name, chips=100, is_bot=False):
         self.name = name
-        self.is_bot = is_bot
         self.chips = chips
         self.hand = []
-        self.current_bet = 0
-        self.folded = False
+        self.is_bot = is_bot
 
-    # bet the chips
-    def bet(self, min_bet, pot):
-        while True:
-            try:
-                amount = int(input(f"{self.name}, enter your bet (min {min_bet}): "))
-                if amount < min_bet:
-                    print(f"Bet must be at least {min_bet}.")
-                elif amount > self.chips:
-                    print("You can't bet more than your total chips.")
-                else:
-                    self.chips -= amount
-                    pot += amount
-                    print(f"{self.name} bets {amount}. Remaining chips: {self.chips}")
-                    return amount, pot
-            except ValueError:
-                print("Please enter a valid number.")
-
-    # raise the bet
-    def raise_bet(self, current_bet, pot):
-        while True:
-            try:
-                amount = int(input(f"{self.name}, enter raise amount (must exceed {current_bet}): "))
-                if amount <= current_bet:
-                    print("Raise must be higher than the current bet.")
-                elif amount > self.chips:
-                    print("You can't raise more than your total chips.")
-                else:
-                    self.chips -= amount
-                    pot += amount
-                    print(f"{self.name} raises to {amount}. Remaining chips: {self.chips}")
-                    return amount, pot
-            except ValueError:
-                print("Please enter a valid number.")
-
-    # call the bet
     def call(self, to_call, pot):
-        if self.chips < to_call:
-            print(f"{self.name} goes all-in with {self.chips} (not enough to call {to_call}).")
-            all_in_amount = self.chips
-            pot += all_in_amount
-            self.chips = 0
-            return all_in_amount, pot
-        else:
-            self.chips -= to_call
-            pot += to_call
-            print(f"{self.name} calls {to_call}. Remaining chips: {self.chips}")
-            return to_call, pot
+        amount = min(to_call, self.chips)
+        self.chips -= amount
+        pot += amount
+        print(f"{self.name} calls {amount}. Remaining chips: {self.chips}")
+        return amount, pot
 
-    # all in the pot
     def all_in(self, pot):
-        all_in_amount = self.chips
+        amount = self.chips
         self.chips = 0
-        pot += all_in_amount
-        print(f"{self.name} goes all-in with {all_in_amount}!")
-        return all_in_amount, pot
+        pot += amount
+        print(f"{self.name} goes all-in with {amount}!")
+        return amount, pot
+
+    def bet_or_raise(self, current_bet, pot, amount=None, percentage=None):
+        if percentage is not None:
+            amount = int(min(self.chips, max(current_bet, pot * percentage)))
+        else:
+            amount = min(amount, self.chips)
+
+        self.chips -= amount
+        pot += amount
+        print(f"{self.name} raises {amount} chips. Remaining chips: {self.chips}")
+        return amount, pot
+
+    def check(self):
+        print(f"{self.name} checks.")
+
+    def fold(self, opponent, pot):
+        print(f"{self.name} folds. {opponent.name} wins the pot of {pot} chips!")
+        opponent.chips += pot
+        return pot, 'ended'
