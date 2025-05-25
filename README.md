@@ -17,7 +17,7 @@ This project is a simplified two-player Texas Hold'em Poker game developed in Py
 1. Make sure Python 3 is installed on your system.
 2. Download or clone the repository:
    ```
-   git clone https://github.com/yourusername/comp9001-poker.git
+   git clone https://github.com/caryzzztro/holdem_poker.git
    cd comp9001-poker
    ```
 3. Run the main script:
@@ -66,7 +66,8 @@ This project is licensed for educational and non-commercial use only.
 
 ## Author
 
-**Ho Yuen Chan**  
+**Ho Yuen Chan**
+**SID: 490537929**
 Bachelor of Computer Science  
 COMP9001, 2025  
 University Submission
